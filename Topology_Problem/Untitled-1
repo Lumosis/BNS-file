@@ -1,0 +1,4 @@
+Step 0: Copy the NN Structure.
+    Without the Node2Vec, SparseInputs, Topology_included
+Step 1: Load the model
+Step 2: Generate a random traffic matrix.
