@@ -174,32 +174,32 @@ def calc_dist(dist, temp_actions):
 class AC_Network():
     def __init__(self, nt_size, tm_size, a_size, scope, trainer):
         with tf.variable_scope(scope):
-            #Input and visual encoding layers
-            # if NODE2VEC:
-            #     self.inputs_tm = tf.placeholder(
-            #         shape=[None, (tm_size * NUM_DIMENSIONS) * 2],
-            #         dtype=tf.float32,
-            #         name='in_tm')
-            #     self.tmIn = tf.reshape(self.inputs_tm,
-            #                            shape=[-1, tm_size, NUM_DIMENSIONS, 2],
-            #                            name='reshape_tm')
-            # elif SPARSE_INPUT:
-            #     ## HACK for TF Bug.
-            #     self.tensor_shapes = tf.placeholder(shape=[3], dtype=np.int64)
-            #     self.flow_sizes = tf.sparse.placeholder(
-            #         shape=self.tensor_shapes, dtype=np.float32)
+            Input and visual encoding layers
+            if NODE2VEC:
+                self.inputs_tm = tf.placeholder(
+                    shape=[None, (tm_size * NUM_DIMENSIONS) * 2],
+                    dtype=tf.float32,
+                    name='in_tm')
+                self.tmIn = tf.reshape(self.inputs_tm,
+                                       shape=[-1, tm_size, NUM_DIMENSIONS, 2],
+                                       name='reshape_tm')
+            elif SPARSE_INPUT:
+                ## HACK for TF Bug.
+                self.tensor_shapes = tf.placeholder(shape=[3], dtype=np.int64)
+                self.flow_sizes = tf.sparse.placeholder(
+                    shape=self.tensor_shapes, dtype=np.float32)
 
-            #     flow_sizes_ = tf.sparse.reshape(self.flow_sizes,
-            #                                     shape=[-1, (tm_size**2)],
-            #                                     name='flow_sizes_reshaped')
+                flow_sizes_ = tf.sparse.reshape(self.flow_sizes,
+                                                shape=[-1, (tm_size**2)],
+                                                name='flow_sizes_reshaped')
 
-            #     self.flow_times = tf.sparse.placeholder(
-            #         shape=self.tensor_shapes, dtype=np.float32)
+                self.flow_times = tf.sparse.placeholder(
+                    shape=self.tensor_shapes, dtype=np.float32)
 
-            #     flow_times_ = tf.sparse.reshape(self.flow_times,
-            #                                     shape=[-1, (tm_size**2)],
-            #                                     name='flow_times_reshaped')
-            # else:
+                flow_times_ = tf.sparse.reshape(self.flow_times,
+                                                shape=[-1, (tm_size**2)],
+                                                name='flow_times_reshaped')
+            else:
                 self.inputs_tm = tf.placeholder(shape=[None, (tm_size**2) * 2],
                                                 dtype=tf.float32,
                                                 name='in_tm')
@@ -209,18 +209,18 @@ class AC_Network():
 
             self.trafficMatrixLayers = []
 
-            # if SPARSE_INPUT:
-            #     # pass
-            #     HIDDEN_LAYER_0 = tf.Variable(initial_value=tf.random_normal(
-            #         shape=[tm_size**2, tm_size**2 / 2], stddev=.05),
-            #                                  name='hidden_layer_0',
-            #                                  dtype=np.float32)
+            if SPARSE_INPUT:
+                # pass
+                HIDDEN_LAYER_0 = tf.Variable(initial_value=tf.random_normal(
+                    shape=[tm_size**2, tm_size**2 / 2], stddev=.05),
+                                             name='hidden_layer_0',
+                                             dtype=np.float32)
 
-            #     flow_sizes = tf.sparse.matmul(flow_sizes_, HIDDEN_LAYER_0)
-            #     flow_times = tf.sparse.matmul(flow_times_, HIDDEN_LAYER_0)
+                flow_sizes = tf.sparse.matmul(flow_sizes_, HIDDEN_LAYER_0)
+                flow_times = tf.sparse.matmul(flow_times_, HIDDEN_LAYER_0)
 
-            #     self.combined_input = tf.concat([flow_times, flow_sizes], 1)
-            #     self.trafficMatrixLayers.append(self.combined_input)
+                self.combined_input = tf.concat([flow_times, flow_sizes], 1)
+                self.trafficMatrixLayers.append(self.combined_input)
             else:
                 for layerNum in xrange(0, len(RL_MODEL)):
                     if layerNum == 0:
@@ -243,51 +243,51 @@ class AC_Network():
 
                     self.trafficMatrixLayers.append(currentLayer)
 
-            # if TOPOLOGY_INCLUDED:
-            #     self.inputs_nt = tf.placeholder(shape=[None, nt_size**2],
-            #                                     dtype=tf.float32,
-            #                                     name='in_nt')
+            if TOPOLOGY_INCLUDED:
+                self.inputs_nt = tf.placeholder(shape=[None, nt_size**2],
+                                                dtype=tf.float32,
+                                                name='in_nt')
 
-            #     self.ntIn = tf.reshape(self.inputs_nt,
-            #                            shape=[-1, nt_size, nt_size, 1],
-            #                            name='reshape_nt')  # [?, 8, 8, 1]
+                self.ntIn = tf.reshape(self.inputs_nt,
+                                       shape=[-1, nt_size, nt_size, 1],
+                                       name='reshape_nt')  # [?, 8, 8, 1]
 
-            #     self.networkInputLayers = []
+                self.networkInputLayers = []
 
-            #     for layerNum in xrange(0, len(RL_MODEL)):
-            #         if layerNum == 0:
-            #             inputs = self.ntIn
-            #         else:
-            #             inputs = self.networkInputLayers[-1]
+                for layerNum in xrange(0, len(RL_MODEL)):
+                    if layerNum == 0:
+                        inputs = self.ntIn
+                    else:
+                        inputs = self.networkInputLayers[-1]
 
-            #         layer = RL_MODEL[layerNum]
+                    layer = RL_MODEL[layerNum]
 
-            #         currentLayer = slim.conv2d(
-            #             activation_fn=tf.nn.elu,
-            #             inputs=inputs,
-            #             num_outputs=layer[0],
-            #             weights_initializer=tf.contrib.layers.
-            #             xavier_initializer(),
-            #             kernel_size=[layer[1], layer[2]],
-            #             stride=[layer[3], layer[4]],
-            #             padding='VALID',
-            #             scope=('conv' +
-            #                    str(layerNum + len(self.trafficMatrixLayers))))
+                    currentLayer = slim.conv2d(
+                        activation_fn=tf.nn.elu,
+                        inputs=inputs,
+                        num_outputs=layer[0],
+                        weights_initializer=tf.contrib.layers.
+                        xavier_initializer(),
+                        kernel_size=[layer[1], layer[2]],
+                        stride=[layer[3], layer[4]],
+                        padding='VALID',
+                        scope=('conv' +
+                               str(layerNum + len(self.trafficMatrixLayers))))
 
-            #         self.networkInputLayers.append(currentLayer)
+                    self.networkInputLayers.append(currentLayer)
 
-            #     combined_input = tf.concat([
-            #         slim.flatten(self.trafficMatrixLayers[-1]),
-            #         slim.flatten(self.networkInputLayers[-1])
-            #     ],
-            #                                1,
-            #                                name='concat')
-            #     # [?, 832]
+                combined_input = tf.concat([
+                    slim.flatten(self.trafficMatrixLayers[-1]),
+                    slim.flatten(self.networkInputLayers[-1])
+                ],
+                                           1,
+                                           name='concat')
+                # [?, 832]
 
-            #     hidden = slim.fully_connected(combined_input,
-            #                                   256,
-            #                                   activation_fn=tf.nn.elu,
-            #                                   scope='fc0')  # [?, 256]
+                hidden = slim.fully_connected(combined_input,
+                                              256,
+                                              activation_fn=tf.nn.elu,
+                                              scope='fc0')  # [?, 256]
             else:
                 hidden = slim.fully_connected(slim.flatten(
                     self.trafficMatrixLayers[-1]),
@@ -317,70 +317,70 @@ class AC_Network():
                                               tf.reduce_max(self.value) + 1)
 
             #Only the worker network need ops for loss functions and gradient updating.
-            # if scope != 'global':
-            #     self.actions = tf.placeholder(
-            #         shape=[None, FLAGS.k_acts],
-            #         dtype=tf.int32)  # [?, k_acts] -> [?, 6]
-            #     self.actions_onehot = tf.one_hot(
-            #         self.actions, a_size,
-            #         dtype=tf.float32)  # [?, k_acts, a_size] -> [?, 6, 28]
-            #     self.target_v = tf.placeholder(
-            #         shape=[None, FLAGS.k_acts],
-            #         dtype=tf.float32)  # [?, 6] (Discounted Rewards)
+            if scope != 'global':
+                self.actions = tf.placeholder(
+                    shape=[None, FLAGS.k_acts],
+                    dtype=tf.int32)  # [?, k_acts] -> [?, 6]
+                self.actions_onehot = tf.one_hot(
+                    self.actions, a_size,
+                    dtype=tf.float32)  # [?, k_acts, a_size] -> [?, 6, 28]
+                self.target_v = tf.placeholder(
+                    shape=[None, FLAGS.k_acts],
+                    dtype=tf.float32)  # [?, 6] (Discounted Rewards)
 
-            #     # Positive reward
-            #     self.advantages = tf.placeholder(
-            #         shape=[None, FLAGS.k_acts], dtype=tf.float32
-            #     )  # [?, 6] (Generalized Advantage Estimation)
-            #     self.policy_expand = tf.expand_dims(self.policy,
-            #                                         1)  # [?, 1, 28]
+                # Positive reward
+                self.advantages = tf.placeholder(
+                    shape=[None, FLAGS.k_acts], dtype=tf.float32
+                )  # [?, 6] (Generalized Advantage Estimation)
+                self.policy_expand = tf.expand_dims(self.policy,
+                                                    1)  # [?, 1, 28]
 
-            #     self.policy_mul = tf.tile(self.policy_expand,
-            #                               [1, FLAGS.k_acts, 1])  # [?, 6, 28]
-            #     self.responsible_outputs = tf.reduce_sum(
-            #         self.policy_mul * self.actions_onehot, [2])  # [?, 6]
+                self.policy_mul = tf.tile(self.policy_expand,
+                                          [1, FLAGS.k_acts, 1])  # [?, 6, 28]
+                self.responsible_outputs = tf.reduce_sum(
+                    self.policy_mul * self.actions_onehot, [2])  # [?, 6]
 
-            #     #Loss functions
-            #     self.value_loss = 0.5 * tf.reduce_sum(
-            #         tf.square(
-            #             tf.reshape(self.target_v, [-1]) -
-            #             tf.reshape(self.value, [-1])))
-            #     self.entropy = -tf.reduce_sum(
-            #         self.policy * tf.log(self.policy))
+                #Loss functions
+                self.value_loss = 0.5 * tf.reduce_sum(
+                    tf.square(
+                        tf.reshape(self.target_v, [-1]) -
+                        tf.reshape(self.value, [-1])))
+                self.entropy = -tf.reduce_sum(
+                    self.policy * tf.log(self.policy))
 
-            #     # Clipping so that NANs don't appear
-            #     if FLAGS.clipping:
-            #         self.responsible_outputs = tf.clip_by_value(
-            #             self.responsible_outputs,
-            #             tf.reduce_min(self.responsible_outputs) +
-            #             FLAGS.clipping_value,
-            #             tf.reduce_max(self.responsible_outputs) +
-            #             FLAGS.clipping_value)
+                # Clipping so that NANs don't appear
+                if FLAGS.clipping:
+                    self.responsible_outputs = tf.clip_by_value(
+                        self.responsible_outputs,
+                        tf.reduce_min(self.responsible_outputs) +
+                        FLAGS.clipping_value,
+                        tf.reduce_max(self.responsible_outputs) +
+                        FLAGS.clipping_value)
 
-            #     self.policy_value = tf.log(
-            #         self.responsible_outputs) * self.advantages
-            #     self.policy_loss = -tf.reduce_sum(self.policy_value)
+                self.policy_value = tf.log(
+                    self.responsible_outputs) * self.advantages
+                self.policy_loss = -tf.reduce_sum(self.policy_value)
 
-            #     # =================
-            #     # self.entropy becomes NaN.
-            #     # =================
-            #     # self.loss = 0.5 * self.value_loss + self.policy_loss - 0.01*self.entropy
+                # =================
+                # self.entropy becomes NaN.
+                # =================
+                # self.loss = 0.5 * self.value_loss + self.policy_loss - 0.01*self.entropy
 
-            #     self.loss = 0.5 * self.value_loss + self.policy_loss
+                self.loss = 0.5 * self.value_loss + self.policy_loss
 
-            #     #Get gradients from local network using local losses
-            #     local_vars = tf.get_collection(
-            #         tf.GraphKeys.TRAINABLE_VARIABLES, scope)
-            #     self.gradients = tf.gradients(self.loss, local_vars)
-            #     self.var_norms = tf.global_norm(local_vars)
-            #     grads, self.grad_norms = tf.clip_by_global_norm(
-            #         self.gradients, 40.0)
+                #Get gradients from local network using local losses
+                local_vars = tf.get_collection(
+                    tf.GraphKeys.TRAINABLE_VARIABLES, scope)
+                self.gradients = tf.gradients(self.loss, local_vars)
+                self.var_norms = tf.global_norm(local_vars)
+                grads, self.grad_norms = tf.clip_by_global_norm(
+                    self.gradients, 40.0)
 
-            #     #Apply local gradients to global network
-            #     global_vars = tf.get_collection(
-            #         tf.GraphKeys.TRAINABLE_VARIABLES, 'global')
-            #     self.apply_grads = trainer.apply_gradients(
-            #         zip(grads, global_vars))
+                #Apply local gradients to global network
+                global_vars = tf.get_collection(
+                    tf.GraphKeys.TRAINABLE_VARIABLES, 'global')
+                self.apply_grads = trainer.apply_gradients(
+                    zip(grads, global_vars))
             
 
 
@@ -896,6 +896,38 @@ class Worker():
                                           simple_value=float(v_n))
                         self.summary_writer.add_summary(summary, episode_count)
                         self.summary_writer.flush()
+
+class DecisionTreeSimulator(object):
+    def __init__(self, simulator, network_simulator):
+        self.simulator = simulator
+        self.network_simulator = network_simulator
+
+    def load(self):
+        # LOAD DECISION TREE FROM DISK
+
+        return decision_tree
+
+    def run(self):    
+        monitor = threading.Event()
+        sim = self.simulator(monitor,
+                             'sim-%s-%02d' % (FLAGS.sim_out_dir, i),
+                             worker_ID)
+
+        # Initialize the network simulator
+        out_dir = "sim-%s-%02d/outputs" % (FLAGS.sim_out_dir, i)
+        nm = self.network_simulator(sim, monitor)
+        nm.set_period(FLAGS.period)
+        nm.set_actions(FLAGS.k_acts, FLAGS.a_size)
+        nm.set_max_reward(FLAGS.max_reward)
+        nm.init()
+
+        state = nm.reset()
+        decision_tree = self.load()
+
+        while nm.is_episode_finished() == False:
+            actions = self.decision_tree.predict(state)
+            nm.step(actions)
+
 
 
 class RLModelSimulator(object):

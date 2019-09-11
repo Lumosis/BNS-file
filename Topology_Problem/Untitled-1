@@ -2,3 +2,10 @@ Step 0: Copy the NN Structure.
     Without the Node2Vec, SparseInputs, Topology_included
 Step 1: Load the model
 Step 2: Generate a random traffic matrix.
+
+
+TESTING = True
+TOTAL_JOB_PERCENTAGE = 100
+TESTING_JOB_START = 20
+TESTING_JOB_END = 100
+INTERARRIVAL_FACTOR = 1.0

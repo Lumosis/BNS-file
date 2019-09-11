@@ -164,7 +164,7 @@ def train_dagger(env, teacher, student, state_transformer, max_iters, n_batch_ro
     obss, acts, qs = [], [], []
     students = []
     wrapped_student = TransformerPolicy(student, state_transformer)
-    n_batch_rollouts = 5
+    n_batch_rollouts = 1
     # Step 1: Generate some supervised traces into the buffer
     trace = get_rollouts(env, teacher, False, n_batch_rollouts)
     obss.extend((state_transformer(obs) for obs, _, _ in trace))
@@ -178,12 +178,15 @@ def train_dagger(env, teacher, student, state_transformer, max_iters, n_batch_ro
     # Step 2: Dagger outer loop
     training = []
     testing = []
+    rew = []
+    tm_num = []
     for i in range(max_iters):
         log('Iteration {}/{}'.format(i, max_iters), INFO)
 
         # Step 2a: Train from a random subset of aggregated data
         cur_obss, cur_acts, cur_qs = _sample(np.array(obss), np.array(acts), np.array(qs), max_samples, is_reweight)
         log('Training student with {} points'.format(len(cur_obss)), INFO)
+        tm_num.append(len(cur_obss))
         # print('cur_obss')
         # print(cur_obss[0])
         # print(type(cur_obss))
@@ -192,12 +195,7 @@ def train_dagger(env, teacher, student, state_transformer, max_iters, n_batch_ro
         training_accuracy, test_accuracy = student.train(cur_obss, cur_acts, train_frac)
         training.append(training_accuracy)
         testing.append(test_accuracy)
-        f = open('./train_data.pk', 'wb')
-        pk.dump(training, f)
-        f.close()
-        f = open('./test_data.pk', 'wb')
-        pk.dump(testing, f)
-        f.close()
+
 
         # Step 2b: Generate trace using student
         student_trace = get_rollouts(env, wrapped_student, False, n_batch_rollouts)
@@ -222,9 +220,21 @@ def train_dagger(env, teacher, student, state_transformer, max_iters, n_batch_ro
         # Step 2e: Estimate the reward
         cur_rew = sum((rew for _, _, rew in student_trace)) / n_batch_rollouts
         log('Student reward: {}'.format(cur_rew), INFO)
-
+        rew.append(cur_rew)
         students.append((student.clone(), cur_rew))
 
+    f = open('./save/train_data.pk', 'wb')
+    pk.dump(training, f)
+    f.close()
+    f = open('./save/test_data.pk', 'wb')
+    pk.dump(testing, f)
+    f.close()
+    f = open('./save/reward.pk', 'wb')
+    pk.dump(rew, f)
+    f.close()
+    f = open('./save/tm_num.pk', 'wb')
+    pk.dump(tm_num, f)
+    f.close()
     max_student = identify_best_policy(env, students, state_transformer, n_test_rollouts)
 
     return max_student

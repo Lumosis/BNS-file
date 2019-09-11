@@ -53,13 +53,13 @@ def learn_dt():
     # Parameters
     log_fname = '../pong_dt.log'
     model_path = './Topology_Problem/data/model-atari-pong-1/saved'
-    max_depth = 12
-    n_batch_rollouts = 10
+    max_depth = 30
+    n_batch_rollouts = 1
     max_samples = 100000
-    max_iters = 80
+    max_iters = 40 
     train_frac = 0.8
     is_reweight = True
-    n_test_rollouts = 50
+    n_test_rollouts = 1
     save_dirname = './Topology_Problem/tmp'
     save_fname = 'dt_policy.pk'
     save_viz_fname = 'dt_policy.dot'
